@@ -17,6 +17,7 @@ class Node:
     score = 0
     scores=[]
     positions=[[],[]]
+    win_positions=[[0, 1, 2],[0, 3, 6],[6, 7, 8],[2, 5, 8],[1, 4, 7],[3, 4, 5],[0, 4, 8],[2,4,6]]
 
     def __init__(self, board, player, left, positions):
         self.board = board
@@ -50,10 +51,15 @@ class Node:
     def move_down(self, position):
         if position < 6:
             if self.board[position + 3] == 0:
-                new_child = Node(self.board.copy(), self.players[self.player])
+                board = self.board.copy()
+                positions = self.positions.copy()
+                new_player = self.players[self.player]
 
-                new_child.board[position + 3] = self.player
-                new_child.board[position] = 0
+                board[position + 3] = self.player
+                board[position] = 0
+
+                new_child = Node(board, new_player, [0,0], positions)
+                new_child.calculate_postions()
 
                 new_child.parent = self
                 self.child.append(new_child)
@@ -61,10 +67,15 @@ class Node:
     def move_up(self, position):
         if position > 2:
             if self.board[position - 3] == 0:
-                new_child = Node(self.board.copy(), self.players[self.player])
+                board = self.board.copy()
+                positions = self.positions.copy()
+                new_player = self.players[self.player]
 
-                new_child.board[position - 3] = self.player
-                new_child.board[position] = 0
+                board[position - 3] = self.player
+                board[position] = 0
+
+                new_child = Node(board, new_player, [0, 0], positions)
+                new_child.calculate_postions()
 
                 new_child.parent = self
                 self.child.append(new_child)
@@ -72,10 +83,15 @@ class Node:
     def move_right(self, position):
         if position % 3 != 2:
             if self.board[position + 1] == 0:
-                new_child = Node(self.board.copy(), self.players[self.player])
+                board = self.board.copy()
+                positions = self.positions.copy()
+                new_player = self.players[self.player]
 
-                new_child.board[position + 1] = self.player
-                new_child.board[position] = 0
+                board[position + 1] = self.player
+                board[position] = 0
+
+                new_child = Node(board, new_player, [0, 0], positions)
+                new_child.calculate_postions()
 
                 new_child.parent = self
                 self.child.append(new_child)
@@ -83,10 +99,15 @@ class Node:
     def move_left(self, position):
         if position % 3 != 0:
             if self.board[position - 1] == 0:
-                new_child = Node(self.board.copy(), self.players[self.player])
+                board = self.board.copy()
+                positions = self.positions.copy()
+                new_player = self.players[self.player]
 
-                new_child.board[position - 1] = self.player
-                new_child.board[position] = 0
+                board[position - 1] = self.player
+                board[position] = 0
+
+                new_child = Node(board, new_player, [0, 0], positions)
+                new_child.calculate_postions()
 
                 new_child.parent = self
                 self.child.append(new_child)
@@ -94,22 +115,47 @@ class Node:
     def move_center(self, position):
         if (position not in [1, 3, 5, 7]):
             if self.board[4] == 0:
-                new_child = Node(self.board.copy(), self.players[self.player])
+                board = self.board.copy()
+                positions = self.positions.copy()
+                new_player = self.players[self.player]
 
-                new_child.board[4] = self.player
-                new_child.board[position] = 0
+                board[4] = self.player
+                board[position] = 0
+
+                new_child = Node(board, new_player, [0, 0], positions)
+                new_child.calculate_postions()
 
                 new_child.parent = self
                 self.child.append(new_child)
 
+    def move_diagonal(self,position):
+        if position == 4:
+            new_pos = [0,2,6,8]
+            for pos in new_pos:
+                if self.board[pos]!=0:
+                    continue
+                board = self.board.copy()
+                positions = self.positions.copy()
+                new_player = self.players[self.player]
+
+                board[pos] = self.player
+                board[position] = 0
+
+                new_child = Node(board, new_player, [0, 0], positions)
+                new_child.calculate_postions()
+
+                new_child.parent = self
+                self.child.append(new_child)
+    #add move in diagnonal
+
     def expand_move(self):
-        positions = self.board.index(self.player)
-        for pawn in positions:
-            self.move_center(pawn)
-            self.move_up(pawn)
-            self.move_right(pawn)
-            self.move_down(pawn)
-            self.move_left(pawn)
+        for man in self.positions[self.player-1]:
+            self.move_center(man)
+            self.move_up(man)
+            self.move_right(man)
+            self.move_down(man)
+            self.move_left(man)
+            self.move_diagonal(man)
 
     def end_placing(self):
         if self.left != [0, 0]:
@@ -122,17 +168,10 @@ class Node:
         """
         score = 0
         positions = self.positions
-        """board=self.board
-        p1_index=[]
-        p2_index=[]
-        for i in range(9):
-            if board[i]==1:
-                p1_index.append(i)
-            if board[i]==2:
-                p2_index.append(i)"""
-        if positions[0] in [[0, 1, 2],[0, 3, 6],[6, 7, 9],[3, 5, 8],[1, 4, 7],[3, 4, 5],[0, 4, 8],[2,4,6]]:
+
+        if positions[0] in self.win_positions:
             score = 1
-        if positions[1] in [[0, 1, 2],[0, 3, 6],[6, 7, 9],[3, 5, 8],[1, 4, 7],[3, 4, 5],[0, 4, 8],[2,4,6]]:
+        if positions[1] in self.win_positions:
             score = -1
         self.score=score
 
